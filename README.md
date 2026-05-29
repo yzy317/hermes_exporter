@@ -1,22 +1,24 @@
 # hermes_exporter
 
-一個獨立於 Hermes Agent 原始碼之外的 Prometheus exporter。
-它會從 Hermes Dashboard API 拉取狀態，並輸出 `/metrics` 供 Prometheus/Grafana 使用。
+An independent Prometheus exporter that lives outside the Hermes Agent codebase.
+It pulls status and usage data from the Hermes Dashboard API and exposes `/metrics` for Prometheus/Grafana.
 
-## 功能
+> Looking for Traditional Chinese? See [README-ZH.md](./README-ZH.md).
 
-- Python 實作
-- 對外提供 `GET /metrics`
-- 預設監聽 `127.0.0.1:9209`
-- 預設讀取 `http://127.0.0.1:9119`
-- 支援的資料來源：
+## Features
+
+- Python implementation
+- Exposes `GET /metrics`
+- Defaults to listening on `127.0.0.1:9209`
+- Defaults to reading from `http://127.0.0.1:9119`
+- Supported data sources:
   - `/api/status`
   - `/api/cron/jobs`
-  - `/api/analytics/usage`（存在時才解析 token / cost / session metrics）
-- 所有 endpoint 錯誤都會被攔截，不會讓 exporter crash
-- 欄位不存在會直接略過
+  - `/api/analytics/usage` (parsed only when present for token / cost / session metrics)
+- Endpoint errors are caught and never crash the exporter
+- Missing fields are ignored safely
 
-## 專案檔案
+## Project Files
 
 - `hermes_exporter.py`
 - `requirements.txt`
@@ -24,9 +26,9 @@
 - `prometheus/hermes-exporter-scrape.yml`
 - `dashboards/hermes-exporter-overview.json`
 
-## 安裝
+## Installation
 
-建議用獨立 venv：
+A dedicated virtual environment is recommended:
 
 ```bash
 cd ~/hermes_exporter
@@ -35,9 +37,9 @@ python3 -m venv .venv
 pip install -r requirements.txt
 ```
 
-## 啟動方式
+## Running
 
-直接執行：
+Run directly:
 
 ```bash
 export HERMES_BASE_URL=http://127.0.0.1:9119
@@ -47,13 +49,13 @@ export HERMES_EXPORTER_TIMEOUT=5
 python3 hermes_exporter.py
 ```
 
-如果 dashboard 需要 token，程式也支援可選環境變數 `HERMES_DASHBOARD_TOKEN` 或 `HERMES_EXPORTER_TOKEN`；不會輸出 token 值。
+If the dashboard requires a token, the app also supports the optional environment variables `HERMES_DASHBOARD_TOKEN` or `HERMES_EXPORTER_TOKEN`; token values are never logged.
 
 ## systemd user service
 
-參考 `systemd/hermes-exporter.service`。
+See `systemd/hermes-exporter.service`.
 
-安裝後：
+After installing:
 
 ```bash
 systemctl --user daemon-reload
@@ -61,9 +63,9 @@ systemctl --user enable --now hermes-exporter.service
 systemctl --user status hermes-exporter.service --no-pager -n 50
 ```
 
-## Prometheus 設定
+## Prometheus configuration
 
-參考 `prometheus/hermes-exporter-scrape.yml`，把這段加入你的 `scrape_configs`：
+See `prometheus/hermes-exporter-scrape.yml` and add this to your `scrape_configs`:
 
 ```yaml
 - job_name: hermes_exporter
@@ -71,43 +73,43 @@ systemctl --user status hermes-exporter.service --no-pager -n 50
     - targets: ['127.0.0.1:9209']
 ```
 
-如果 Prometheus 不在同一台主機，請改成 exporter 實際可達的 host:port。通常仍建議 exporter 只綁 `127.0.0.1`，再由本機 Prometheus scrape。
+If Prometheus runs on another host, change the target to the exporter’s reachable host:port. In most setups it is still best to keep the exporter bound to `127.0.0.1` and let local Prometheus scrape it.
 
-## Grafana Dashboard JSON
+## Grafana dashboard JSON
 
-本 repo 也附上可直接匯入的 dashboard：
+This repo also includes an importable dashboard:
 
 - `dashboards/hermes-exporter-overview.json`
 
-### 匯入方式 1：Grafana 直接匯入
+### Import method 1: Grafana UI
 
-1. 打開 Grafana
-2. 到 **Dashboards → New → Import**
-3. 上傳 `dashboards/hermes-exporter-overview.json`
-4. 選擇 Prometheus datasource
-5. 匯入後就能看到 **Hermes Exporter Overview**
+1. Open Grafana
+2. Go to **Dashboards → New → Import**
+3. Upload `dashboards/hermes-exporter-overview.json`
+4. Select your Prometheus datasource
+5. After import, you should see **Hermes Exporter Overview**
 
-### 匯入方式 2：Provisioning
+### Import method 2: Provisioning
 
-如果你是用檔案 provisioning，直接把這個 JSON 放進 Grafana 的 dashboards 目錄即可。
+If you use file provisioning, place the JSON into Grafana’s dashboards directory.
 
-這份 dashboard 主要包含：
+This dashboard includes:
 
-- Prometheus / Node Exporter 狀態
-- Hermes Dashboard 狀態
-- 主要 usage / cost / session 統計
-- Cron Timing table
-- Model token usage / top models 圖表
+- Prometheus / Node Exporter status
+- Hermes Dashboard status
+- Core usage / cost / session statistics
+- Cron timing table
+- Model token usage / top models charts
 
-## 測試方式
+## Verification
 
-### 1) 確認 dashboard 先活著
+### 1) Make sure the dashboard is alive first
 
 ```bash
 curl -fsS http://127.0.0.1:9119/api/status | python3 -m json.tool
 ```
 
-### 2) 啟動 exporter
+### 2) Start the exporter
 
 ```bash
 HERMES_BASE_URL=http://127.0.0.1:9119 \
@@ -117,35 +119,35 @@ HERMES_EXPORTER_TIMEOUT=5 \
 python3 hermes_exporter.py
 ```
 
-### 3) 讀取 metrics
+### 3) Read metrics
 
 ```bash
 curl -fsS http://127.0.0.1:9209/metrics | grep '^hermes_'
 ```
 
-### 4) 驗證 Prometheus 是否抓到
+### 4) Verify that Prometheus is scraping
 
-在 Prometheus UI 內查：
+In the Prometheus UI, query:
 
 ```promql
 hermes_dashboard_endpoint_up
 ```
 
-或者：
+Or:
 
 ```promql
 hermes_dashboard_active_sessions
 ```
 
-## 重要設計點
+## Design notes
 
-- exporter 只綁 `127.0.0.1`
-- 不會碰 Hermes Agent 原始碼
-- 不會輸出任何 API key
-- endpoint 失敗只會變成 0/空值，不會中斷服務
-- 欄位缺失會略過，不會 raise
+- exporter binds to `127.0.0.1` only
+- it does not touch the Hermes Agent source code
+- it never outputs API keys
+- failed endpoints are converted to 0 / empty values instead of interrupting the service
+- missing fields are skipped without raising errors
 
-## 可能的 PromQL 範例
+## PromQL examples
 
 - `hermes_dashboard_endpoint_up{endpoint="status"}`
 - `hermes_dashboard_gateway_running`
