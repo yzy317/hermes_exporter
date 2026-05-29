@@ -1,4 +1,13 @@
+# Go build outputs
+hermes_exporter
+*.test
+bin/
+
+# Python leftovers / local caches
 __pycache__/
 *.pyc
-.venv/
-.env
+
+# OS / editor noise
+.DS_Store
+.vscode/
+.idea/

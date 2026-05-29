@@ -1,13 +1,13 @@
 # hermes_exporter
 
-An independent Prometheus exporter that lives outside the Hermes Agent codebase.
+An independent Go Prometheus exporter that lives outside the Hermes Agent codebase.
 It pulls status and usage data from the Hermes Dashboard API and exposes `/metrics` for Prometheus/Grafana.
 
 > Looking for Traditional Chinese? See [README-ZH.md](./README-ZH.md).
 
 ## Features
 
-- Python implementation
+- Go implementation
 - Exposes `GET /metrics`
 - Defaults to listening on `127.0.0.1:9209`
 - Defaults to reading from `http://127.0.0.1:9119`
@@ -20,21 +20,26 @@ It pulls status and usage data from the Hermes Dashboard API and exposes `/metri
 
 ## Project Files
 
-- `hermes_exporter.py`
-- `requirements.txt`
+- `main.go`
+- `go.mod`
+- `go.sum`
 - `systemd/hermes-exporter.service`
 - `prometheus/hermes-exporter-scrape.yml`
 - `dashboards/hermes-exporter-overview.json`
 
 ## Installation
 
-A dedicated virtual environment is recommended:
+Build the exporter binary with Go:
 
 ```bash
 cd ~/hermes_exporter
-python3 -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
+go build -o hermes_exporter .
+```
+
+If you want to run the tests first:
+
+```bash
+go test ./...
 ```
 
 ## Running
@@ -46,7 +51,7 @@ export HERMES_BASE_URL=http://127.0.0.1:9119
 export HERMES_EXPORTER_PORT=9209
 export HERMES_EXPORTER_INTERVAL=15
 export HERMES_EXPORTER_TIMEOUT=5
-python3 hermes_exporter.py
+./hermes_exporter
 ```
 
 If the dashboard requires a token, the app also supports the optional environment variables `HERMES_DASHBOARD_TOKEN` or `HERMES_EXPORTER_TOKEN`; token values are never logged.
@@ -55,7 +60,7 @@ If the dashboard requires a token, the app also supports the optional environmen
 
 See `systemd/hermes-exporter.service`.
 
-After installing:
+After building the binary:
 
 ```bash
 systemctl --user daemon-reload
@@ -116,7 +121,7 @@ HERMES_BASE_URL=http://127.0.0.1:9119 \
 HERMES_EXPORTER_PORT=9209 \
 HERMES_EXPORTER_INTERVAL=15 \
 HERMES_EXPORTER_TIMEOUT=5 \
-python3 hermes_exporter.py
+./hermes_exporter
 ```
 
 ### 3) Read metrics

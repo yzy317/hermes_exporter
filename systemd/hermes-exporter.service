@@ -12,7 +12,7 @@ Environment=HERMES_EXPORTER_PORT=9209
 Environment=HERMES_EXPORTER_TEXTFILE_PATH=/home/yen/monitoring/node-exporter-textfile/hermes_exporter.prom
 Environment=HERMES_EXPORTER_INTERVAL=15
 Environment=HERMES_EXPORTER_TIMEOUT=5
-ExecStart=/usr/bin/env python3 %h/hermes_exporter/hermes_exporter.py
+ExecStart=%h/hermes_exporter/hermes_exporter
 Restart=always
 RestartSec=3
 NoNewPrivileges=yes

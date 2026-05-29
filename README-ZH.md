@@ -1,11 +1,11 @@
 # hermes_exporter
 
-一個獨立於 Hermes Agent 原始碼之外的 Prometheus exporter。
+一個獨立於 Hermes Agent 原始碼之外的 Go Prometheus exporter。
 它會從 Hermes Dashboard API 拉取狀態，並輸出 `/metrics` 供 Prometheus/Grafana 使用。
 
 ## 功能
 
-- Python 實作
+- Go 實作
 - 對外提供 `GET /metrics`
 - 預設監聽 `127.0.0.1:9209`
 - 預設讀取 `http://127.0.0.1:9119`
@@ -18,21 +18,26 @@
 
 ## 專案檔案
 
-- `hermes_exporter.py`
-- `requirements.txt`
+- `main.go`
+- `go.mod`
+- `go.sum`
 - `systemd/hermes-exporter.service`
 - `prometheus/hermes-exporter-scrape.yml`
 - `dashboards/hermes-exporter-overview.json`
 
 ## 安裝
 
-建議用獨立 venv：
+用 Go 編譯 exporter binary：
 
 ```bash
 cd ~/hermes_exporter
-python3 -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
+go build -o hermes_exporter .
+```
+
+如果你想先跑測試：
+
+```bash
+go test ./...
 ```
 
 ## 啟動方式
@@ -44,7 +49,7 @@ export HERMES_BASE_URL=http://127.0.0.1:9119
 export HERMES_EXPORTER_PORT=9209
 export HERMES_EXPORTER_INTERVAL=15
 export HERMES_EXPORTER_TIMEOUT=5
-python3 hermes_exporter.py
+./hermes_exporter
 ```
 
 如果 dashboard 需要 token，程式也支援可選環境變數 `HERMES_DASHBOARD_TOKEN` 或 `HERMES_EXPORTER_TOKEN`；不會輸出 token 值。
@@ -53,7 +58,7 @@ python3 hermes_exporter.py
 
 參考 `systemd/hermes-exporter.service`。
 
-安裝後：
+編譯完成後：
 
 ```bash
 systemctl --user daemon-reload
@@ -114,7 +119,7 @@ HERMES_BASE_URL=http://127.0.0.1:9119 \
 HERMES_EXPORTER_PORT=9209 \
 HERMES_EXPORTER_INTERVAL=15 \
 HERMES_EXPORTER_TIMEOUT=5 \
-python3 hermes_exporter.py
+./hermes_exporter
 ```
 
 ### 3) 讀取 metrics
